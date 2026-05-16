@@ -32,7 +32,7 @@ simplify toward a "median" reader that reflects their training data.
 This median is typically educated, English-native, and neurotypical. 
 Simplified text may still exclude the very readers it claims to serve.
 
-This is the core question I want to pursue at UTN HAI: 
+This is the core question I want to pursue: 
 how do we design AI systems that account for cognitive diversity 
 rather than optimizing for a fictional average user?
 
