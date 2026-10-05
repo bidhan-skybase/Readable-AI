@@ -1,9 +1,15 @@
-# from dotenv import load_dotenv
-from groq import Groq
-# load_dotenv()
+import os
+from groq import Groq, NotFoundError
 
+# Default to active production model on Groq, with fallback support
+CANDIDATE_MODELS = [
+    os.environ.get("GROQ_MODEL", "openai/gpt-oss-120b"),
+    "openai/gpt-oss-20b",
+    "llama-3.3-70b-versatile",
+]
+# Deduplicate while preserving order
+MODELS = list(dict.fromkeys(CANDIDATE_MODELS))
 
-client = Groq()
 PROFILES = {
     "Dyslexia-friendly": """
         Rewrite this text for someone with dyslexia.
@@ -29,18 +35,28 @@ PROFILES = {
         One idea per sentence only.
     """
 }
+
 def simplify(text, profile):
     instruction = PROFILES.get(profile, PROFILES["Dyslexia-friendly"])
+    client = Groq()
     
-    completion = client.chat.completions.create(
-        model="llama-3.3-70b-versatile", # Free, powerful frontier model
-        messages=[
-            {
-                "role": "user",
-                "content": f"{instruction}\n\nOriginal text:\n{text}\n\nRewritten text:"
-            }
-        ],
-        max_tokens=1000
-    )
-    
-    return completion.choices[0].message.content
+    last_error = None
+    for model_name in MODELS:
+        try:
+            completion = client.chat.completions.create(
+                model=model_name,
+                messages=[
+                    {
+                        "role": "user",
+                        "content": f"{instruction}\n\nOriginal text:\n{text}\n\nRewritten text:"
+                    }
+                ],
+                max_tokens=1000
+            )
+            return completion.choices[0].message.content
+        except NotFoundError as e:
+            last_error = e
+            continue
+
+    if last_error:
+        raise last_error

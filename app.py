@@ -107,30 +107,33 @@ if analyze_btn and text_input:
 if simplify_btn and text_input:
     # Check API key
     if not os.environ.get("GROQ_API_KEY"):
-        st.error("Add your ANTHROPIC_API_KEY to your environment variables.")
+        st.error("Add your `GROQ_API_KEY` to your environment variables or Streamlit secrets.")
     else:
         with st.spinner(f"Rewriting for {profile} readers..."):
-            rewritten = simplify(text_input, profile)
-        
-        st.subheader(f"Rewritten — {profile}")
-        st.info(rewritten)
-        
-        # Run analysis on rewritten version too
-        with st.spinner("Analyzing rewritten version..."):
-            new_results = analyze(rewritten)
-        
-        st.caption(
-            f"Complexity after rewriting: **{new_results['final_level'].upper()}** "
-            f"(was: {analyze(text_input)['final_level']})"
-        )
-        
-        # Ethical note — this is your HAI differentiator
-        st.warning(
-            "⚠️ **Ethical note:** AI simplification reflects the training data's "
-            "assumptions about 'simple' language. It may still disadvantage "
-            "non-native speakers or people whose cognitive style differs from "
-            "what the model was trained on. Human review is always recommended."
-        )
+            try:
+                rewritten = simplify(text_input, profile)
+                st.subheader(f"Rewritten — {profile}")
+                st.info(rewritten)
+                
+                # Run analysis on rewritten version too
+                with st.spinner("Analyzing rewritten version..."):
+                    new_results = analyze(rewritten)
+                
+                st.caption(
+                    f"Complexity after rewriting: **{new_results['final_level'].upper()}** "
+                    f"(was: {analyze(text_input)['final_level']})"
+                )
+                
+                # Ethical note — this is your HAI differentiator
+                st.warning(
+                    "⚠️ **Ethical note:** AI simplification reflects the training data's "
+                    "assumptions about 'simple' language. It may still disadvantage "
+                    "non-native speakers or people whose cognitive style differs from "
+                    "what the model was trained on. Human review is always recommended."
+                )
+            except Exception as e:
+                st.error(f"Error during simplification: {e}")
+
 
 # Footer
 st.divider()
